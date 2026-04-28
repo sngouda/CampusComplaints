@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - CampusCare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .background-anim {
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(15,23,42,1) 50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-anim"></div>
+    <header class="glass-header">
+        <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div></a>
+        <nav>
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="student_login.html" class="nav-link">Student Login</a>
+        </nav>
+    </header>
+
+    <div class="auth-container">
+        <div class="glass-card auth-card" style="border-top: 4px solid var(--warning);">
+            <h2 class="auth-title">Admin Portal</h2>
+            
+            <div id="error-alert" class="alert alert-error"></div>
+            
+            <form action="AdminLoginServlet" method="POST">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="btn btn-primary submit-btn" style="background:var(--warning); box-shadow:0 4px 15px rgba(245,158,11,0.4);">
+                    Login as Admin
+                </button>
+            </form>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>

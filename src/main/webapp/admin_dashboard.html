@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CampusCare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .background-anim {
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(15,23,42,1) 50%);
+        }
+        .admin-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .admin-controls select {
+            padding: 0.5rem 0.8rem;
+            border-radius: 5px;
+            background: rgba(15,23,42,0.8);
+            color: white;
+            border: 1px solid var(--glass-border);
+            flex: 1;
+            min-width: 140px;
+        }
+        .admin-controls button.update-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 5px;
+            background: var(--warning);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .admin-controls button.update-btn:hover { opacity: 0.85; }
+
+        /* Filter Bars */
+        .priority-filter-bar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .priority-filter-bar span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-right: 0.25rem;
+        }
+        .filter-btn {
+            padding: 0.45rem 1.2rem;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            background: rgba(30,41,59,0.6);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+        .filter-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .filter-btn.active, .filter-btn:focus { outline: none; }
+
+        /* Priority filter active states */
+        .filter-btn.all.active    { background: #6366f1; color: white; border-color: #6366f1; box-shadow: 0 0 12px rgba(99,102,241,0.35); }
+        .filter-btn.high.active   { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 0 12px rgba(239,68,68,0.35); }
+        .filter-btn.medium.active { background: #f59e0b; color: white; border-color: #f59e0b; box-shadow: 0 0 12px rgba(245,158,11,0.35); }
+        .filter-btn.low.active    { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 0 12px rgba(16,185,129,0.35); }
+
+        /* Category filter active states */
+        .filter-btn.cat-all.active           { background: #6366f1; color: white; border-color: #6366f1; box-shadow: 0 0 12px rgba(99,102,241,0.35); }
+        .filter-btn.infrastructure.active    { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59,130,246,0.35); }
+        .filter-btn.campus.active            { background: #8b5cf6; color: white; border-color: #8b5cf6; box-shadow: 0 0 12px rgba(139,92,246,0.35); }
+        .filter-btn.hostel.active            { background: #ec4899; color: white; border-color: #ec4899; box-shadow: 0 0 12px rgba(236,72,153,0.35); }
+        .filter-btn.others.active            { background: #64748b; color: white; border-color: #64748b; box-shadow: 0 0 12px rgba(100,116,139,0.35); }
+
+        /* Priority left-border helpers */
+        .priority-high   { border-left: 4px solid #ef4444 !important; }
+        .priority-medium { border-left: 4px solid #f59e0b !important; }
+        .priority-low    { border-left: 4px solid #10b981 !important; }
+
+        /* Section headers */
+        .section-heading {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+        .section-heading.high   { color: #ef4444; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+        .section-heading.medium { color: #f59e0b; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+        .section-heading.low    { color: #10b981; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+
+        /* Category badge */
+        .badge-category {
+            background: rgba(99,102,241,0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99,102,241,0.3);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        #results-info {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-anim"></div>
+    <header class="glass-header">
+        <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div></a>
+        <nav>
+            <span class="nav-link" style="color:var(--text-muted);">Welcome, Admin</span>
+            <a href="admin_login.html" class="nav-link active" style="color:var(--warning);">Logout</a>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <div id="error-alert" class="alert alert-error" style="max-width:960px; margin:0 auto 1.5rem auto;"></div>
+        <div id="success-alert" class="alert alert-success" style="max-width:960px; margin:0 auto 1.5rem auto;"></div>
+
+        <div style="max-width:960px; margin:0 auto;">
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">System Complaints Overview</h2>
+            </div>
+
+            <!-- Priority Filter Buttons -->
+            <div class="priority-filter-bar">
+                <span>Filter by Priority:</span>
+                <button class="filter-btn all active" id="filter-all"    onclick="applyPriorityFilter('All')">🔵 All</button>
+                <button class="filter-btn high"       id="filter-high"   onclick="applyPriorityFilter('High')">🔴 High</button>
+                <button class="filter-btn medium"     id="filter-medium" onclick="applyPriorityFilter('Medium')">🟡 Medium</button>
+                <button class="filter-btn low"        id="filter-low"    onclick="applyPriorityFilter('Low')">🟢 Low</button>
+            </div>
+
+            <!-- Category Filter Buttons -->
+            <div class="priority-filter-bar">
+                <span>Filter by Category:</span>
+                <button class="filter-btn cat-all active" id="filter-cat-all"            onclick="applyCategoryFilter('All')">📋 All</button>
+                <button class="filter-btn infrastructure" id="filter-infrastructure"     onclick="applyCategoryFilter('Infrastructure')">🏗️ Infrastructure</button>
+                <button class="filter-btn campus"         id="filter-campus"             onclick="applyCategoryFilter('Campus')">🏫 Campus</button>
+                <button class="filter-btn hostel"         id="filter-hostel"             onclick="applyCategoryFilter('Hostel')">🏠 Hostel</button>
+                <button class="filter-btn others"         id="filter-others"             onclick="applyCategoryFilter('Others')">📁 Others</button>
+            </div>
+
+            <div id="results-info"></div>
+            <div class="complaint-list" id="admin-complaints-container">
+                <p style="text-align:center; color:var(--text-muted);">Loading system complaints...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        let currentPriorityFilter = 'All';
+        let currentCategoryFilter = 'All';
+        let allComplaints = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComplaints();
+        });
+
+        function loadComplaints() {
+            fetch('AdminDashboardServlet')
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = 'admin_login.html?error=Session expired. Please login again.';
+                        }
+                        throw new Error('Failed to load complaints');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    allComplaints = data;
+                    renderComplaints();
+                })
+                .catch(err => {
+                    if (err.message !== 'Failed to load complaints') console.error(err);
+                });
+        }
+
+        function applyPriorityFilter(priority) {
+            currentPriorityFilter = priority;
+            document.querySelectorAll('.filter-btn.all, .filter-btn.high, .filter-btn.medium, .filter-btn.low').forEach(btn => btn.classList.remove('active'));
+            const btnMap = { All: 'filter-all', High: 'filter-high', Medium: 'filter-medium', Low: 'filter-low' };
+            document.getElementById(btnMap[priority]).classList.add('active');
+            renderComplaints();
+        }
+
+        function applyCategoryFilter(category) {
+            currentCategoryFilter = category;
+            document.querySelectorAll('.filter-btn.cat-all, .filter-btn.infrastructure, .filter-btn.campus, .filter-btn.hostel, .filter-btn.others').forEach(btn => btn.classList.remove('active'));
+            const btnMap = { All: 'filter-cat-all', Infrastructure: 'filter-infrastructure', Campus: 'filter-campus', Hostel: 'filter-hostel', Others: 'filter-others' };
+            document.getElementById(btnMap[category]).classList.add('active');
+            renderComplaints();
+        }
+
+        function renderComplaints() {
+            const container = document.getElementById('admin-complaints-container');
+            const info      = document.getElementById('results-info');
+            container.innerHTML = '';
+
+            let list = allComplaints;
+
+            // Apply priority filter
+            if (currentPriorityFilter !== 'All') {
+                list = list.filter(c => (c.priority || 'Medium') === currentPriorityFilter);
+            }
+
+            // Apply category filter
+            if (currentCategoryFilter !== 'All') {
+                list = list.filter(c => (c.category || 'Others') === currentCategoryFilter);
+            }
+
+            if (list.length === 0) {
+                info.textContent = '';
+                let msg = 'No complaints found';
+                if (currentPriorityFilter !== 'All') msg += ` for <strong>${currentPriorityFilter} Priority</strong>`;
+                if (currentCategoryFilter !== 'All') msg += ` in <strong>${currentCategoryFilter}</strong>`;
+                container.innerHTML = `<div class="glass-card" style="text-align:center; padding: 3rem;"><p>${msg}.</p></div>`;
+                return;
+            }
+
+            let infoText = `Showing ${list.length} complaint${list.length !== 1 ? 's' : ''}`;
+            if (currentPriorityFilter !== 'All') infoText += ` · ${currentPriorityFilter} Priority`;
+            if (currentCategoryFilter !== 'All') infoText += ` · ${currentCategoryFilter}`;
+            info.textContent = infoText;
+
+            if (currentPriorityFilter === 'All' && currentCategoryFilter === 'All') {
+                // Group by priority when no filter active
+                ['High', 'Medium', 'Low'].forEach(p => {
+                    const group = list.filter(c => (c.priority || 'Medium') === p);
+                    if (group.length === 0) return;
+                    const heading = document.createElement('div');
+                    heading.className = `section-heading ${p.toLowerCase()}`;
+                    heading.innerHTML = `${getPriorityIcon(p)} ${p} Priority <span style="font-size:0.8rem; font-weight:400;">(${group.length})</span>`;
+                    container.appendChild(heading);
+                    group.forEach(c => container.appendChild(buildCard(c)));
+                });
+            } else {
+                list.forEach(c => container.appendChild(buildCard(c)));
+            }
+        }
+
+        function buildCard(complaint) {
+            const date = new Date(complaint.date).toLocaleDateString(undefined, {
+                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            const priority = complaint.priority || 'Medium';
+            const category = complaint.category || 'Others';
+
+            const item = document.createElement('div');
+            item.className = `glass-card complaint-item priority-${priority.toLowerCase()}`;
+            item.innerHTML = `
+                <div class="complaint-header">
+                    <div class="complaint-title">${complaint.title}</div>
+                    <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                        <span class="badge badge-category">${getCategoryIcon(category)} ${category}</span>
+                        <span class="badge ${getPriorityBadgeClass(priority)}">${getPriorityIcon(priority)} ${priority}</span>
+                        <span class="badge ${getBadgeClass(complaint.status)}">${complaint.status}</span>
+                    </div>
+                </div>
+                <div class="complaint-desc">${complaint.description}</div>
+                <div class="complaint-meta">
+                    <span>Reported by: <strong>${complaint.student_name}</strong></span>
+                    <span>ID: #${complaint.id} &bull; ${date}</span>
+                </div>
+                <div class="admin-controls">
+                    <select id="status-${complaint.id}">
+                        <option value="Pending"     ${complaint.status === 'Pending'     ? 'selected' : ''}>Pending</option>
+                        <option value="In Progress" ${complaint.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Resolved"    ${complaint.status === 'Resolved'    ? 'selected' : ''}>Resolved</option>
+                    </select>
+                    <button class="update-btn" onclick="updateStatus(${complaint.id})">Update Status</button>
+                </div>
+            `;
+            return item;
+        }
+
+        function updateStatus(id) {
+            const statusBox = document.getElementById(`status-${id}`);
+            const newStatus = statusBox.value;
+
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            formData.append('status', newStatus);
+
+            fetch('UpdateComplaintServlet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(response => {
+                if (response.ok) {
+                    const successDiv = document.getElementById('success-alert');
+                    successDiv.textContent = 'Status updated successfully!';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => successDiv.style.display = 'none', 3000);
+                    loadComplaints();
+                } else {
+                    const errorDiv = document.getElementById('error-alert');
+                    errorDiv.textContent = 'Failed to update status.';
+                    errorDiv.style.display = 'block';
+                    setTimeout(() => errorDiv.style.display = 'none', 3000);
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        function getPriorityBadgeClass(priority) {
+            if (priority === 'High') return 'badge-priority-high';
+            if (priority === 'Low')  return 'badge-priority-low';
+            return 'badge-priority-medium';
+        }
+
+        function getPriorityIcon(priority) {
+            if (priority === 'High') return '🔴';
+            if (priority === 'Low')  return '🟢';
+            return '🟡';
+        }
+
+        function getCategoryIcon(category) {
+            if (category === 'Infrastructure') return '🏗️';
+            if (category === 'Campus')         return '🏫';
+            if (category === 'Hostel')         return '🏠';
+            return '📁';
+        }
+    </script>
+</body>
+</html>

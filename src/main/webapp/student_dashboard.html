@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - CampusCare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="background-anim"></div>
+    <header class="glass-header">
+        <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare</div></a>
+        <nav>
+            <span class="nav-link" style="color:var(--text-muted);">Welcome, <span id="student-name">Student</span></span>
+            <a href="student_login.html" class="nav-link active">Logout</a>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <div id="error-alert" class="alert alert-error" style="max-width:800px; margin:0 auto 1.5rem auto;"></div>
+        <div id="success-alert" class="alert alert-success" style="max-width:800px; margin:0 auto 1.5rem auto;"></div>
+
+        <div class="dashboard-header" style="max-width:800px; margin:0 auto;">
+            <h2 class="dashboard-title">My Complaints</h2>
+            <button id="add-complaint-btn" class="btn btn-primary">+ Lodge Complaint</button>
+        </div>
+
+        <div class="complaint-list" id="complaints-container" style="max-width:800px; margin:0 auto;">
+            <p style="text-align:center; color:var(--text-muted);">Loading complaints...</p>
+        </div>
+    </div>
+
+    <!-- Add Complaint Modal -->
+    <div id="complaint-modal" class="modal">
+        <div class="glass-card modal-content" style="padding: 2rem;">
+            <button class="close-btn">&times;</button>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Lodge New Complaint</h3>
+            <form action="AddComplaintServlet" method="POST">
+                <div class="form-group">
+                    <label for="title">Complaint Title</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="E.g., Broken projector in Room 302" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Detailed Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="4" placeholder="Please describe the issue in detail..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priority Level</label>
+                    <select id="priority" name="priority" class="form-control priority-select" required>
+                        <option value="" disabled selected>-- Select Priority --</option>
+                        <option value="High">🔴 High Priority</option>
+                        <option value="Medium">🟡 Medium Priority</option>
+                        <option value="Low">🟢 Low Priority</option>
+                    </select>
+                </div>
+                <!-- ✅ BUG FIX: Category dropdown was missing from the form -->
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" class="form-control priority-select" required>
+                        <option value="" disabled selected>-- Select Category --</option>
+                        <option value="Infrastructure">🏗️ Infrastructure</option>
+                        <option value="Campus">🏫 Campus</option>
+                        <option value="Hostel">🏠 Hostel</option>
+                        <option value="Others">📁 Others</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary submit-btn">Submit Complaint</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('TrackComplaintServlet')
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = 'student_login.html?error=Session expired. Please login again.';
+                        }
+                        throw new Error('Failed to load complaints');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const container = document.getElementById('complaints-container');
+                    container.innerHTML = '';
+
+                    if (data.length === 0) {
+                        container.innerHTML = '<div class="glass-card" style="text-align:center; padding: 3rem;"><p>You haven\'t logged any complaints yet.</p></div>';
+                        return;
+                    }
+
+                    data.forEach(complaint => {
+                        const date = new Date(complaint.date).toLocaleDateString(undefined, {
+                            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        });
+
+                        const priority = complaint.priority || 'Medium';
+                        const category = complaint.category || 'Others';
+                        const priorityBorderColor = getPriorityBorderColor(priority);
+
+                        const item = document.createElement('div');
+                        item.className = 'glass-card complaint-item';
+                        item.style.borderLeft = `4px solid ${priorityBorderColor}`;
+                        item.innerHTML = `
+                            <div class="complaint-header">
+                                <div class="complaint-title">${complaint.title}</div>
+                                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                                    <span class="badge ${getPriorityBadgeClass(priority)}">${getPriorityIcon(priority)} ${priority}</span>
+                                    <span class="badge badge-category">${getCategoryIcon(category)} ${category}</span>
+                                    <span class="badge ${getBadgeClass(complaint.status)}">${complaint.status}</span>
+                                </div>
+                            </div>
+                            <div class="complaint-desc">${complaint.description}</div>
+                            <div class="complaint-meta">
+                                <span>Complaint ID: #${complaint.id}</span>
+                                <span>${date}</span>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                })
+                .catch(err => {
+                    if (err.message !== 'Failed to load complaints') {
+                        console.error(err);
+                    }
+                });
+        });
+
+        function getPriorityBadgeClass(priority) {
+            if (priority === 'High') return 'badge-priority-high';
+            if (priority === 'Low') return 'badge-priority-low';
+            return 'badge-priority-medium';
+        }
+
+        function getPriorityBorderColor(priority) {
+            if (priority === 'High') return '#ef4444';
+            if (priority === 'Low') return '#10b981';
+            return '#f59e0b';
+        }
+
+        function getPriorityIcon(priority) {
+            if (priority === 'High') return '🔴';
+            if (priority === 'Low') return '🟢';
+            return '🟡';
+        }
+
+        function getCategoryIcon(category) {
+            if (category === 'Infrastructure') return '🏗️';
+            if (category === 'Campus') return '🏫';
+            if (category === 'Hostel') return '🏠';
+            return '📁';
+        }
+    </script>
+</body>
+</html>
