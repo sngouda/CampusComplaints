@@ -43,6 +43,7 @@ public class TrackComplaintServlet extends HttpServlet {
             while (rs.next()) {
                 if (!first) {
                     json.append(",");
+
                 }
                 json.append("{");
                 json.append("\"id\":").append(rs.getInt("id")).append(",");
