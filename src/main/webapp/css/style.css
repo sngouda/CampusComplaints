@@ -721,7 +721,6 @@ nav .nav-link.active {
     }
 
     nav {
-        display: none;
         flex-direction: column;
         align-items: flex-start;
         gap: 0;
@@ -736,13 +735,16 @@ nav .nav-link.active {
         border-left: 1px solid var(--glass-border);
         padding: 5rem 1.5rem 2rem;
         z-index: 150;
-        transition: transform 0.3s ease;
         transform: translateX(100%);
+        transition: transform 0.3s ease;
+        /* override desktop display */
+        display: flex !important;
+        visibility: hidden;
     }
 
     nav.open {
-        display: flex;
         transform: translateX(0);
+        visibility: visible;
     }
 
     nav .nav-link {
