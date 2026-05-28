@@ -46,12 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navOverlay.addEventListener('click', closeNav);
     }
 
-    // Close when a nav link is tapped
-    if (mainNav) {
-        mainNav.querySelectorAll('a.nav-link').forEach(function(link) {
-            link.addEventListener('click', closeNav);
-        });
-    }
+    // NOTE: Do NOT attach closeNav to nav links — it blocks navigation on mobile
 
     // ----------------------------------------------------
     // Modal Logic
