@@ -21,11 +21,13 @@ public class EmailUtil {
     public static void sendEmail(String recipientEmail, String subject, String body) {
 
         String apiKey      = System.getenv("RESEND_API_KEY");
-        String senderEmail = System.getenv("SENDER_EMAIL");
+        String senderEmail = "onboarding@resend.dev";
 
-        if (senderEmail == null || senderEmail.isEmpty()) {
-            // Resend allows this test sender without domain verification
-            senderEmail = "onboarding@resend.dev";
+        // Resend free plan: can only send to the account owner's email
+        // Override recipient to your verified email until a domain is added
+        String actualRecipient = System.getenv("RESEND_TO_EMAIL");
+        if (actualRecipient == null || actualRecipient.isEmpty()) {
+            actualRecipient = recipientEmail; // use real recipient if env var set
         }
 
         if (apiKey == null || apiKey.isEmpty()) {
@@ -36,7 +38,7 @@ public class EmailUtil {
         try {
             String jsonBody = "{"
                 + "\"from\":\"" + escapeJson(SENDER_NAME) + " <" + escapeJson(senderEmail) + ">\","
-                + "\"to\":[\"" + escapeJson(recipientEmail) + "\"],"
+                + "\"to\":[\"" + escapeJson(actualRecipient) + "\"],"
                 + "\"subject\":\"" + escapeJson(subject) + "\","
                 + "\"html\":\"" + escapeJson(body) + "\""
                 + "}";
