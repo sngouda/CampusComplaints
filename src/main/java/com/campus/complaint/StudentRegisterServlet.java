@@ -21,31 +21,44 @@ public class StudentRegisterServlet extends HttpServlet {
         String password = request.getParameter("password");
         
         try (Connection conn = DBConnection.getConnection()) {
+            // Check if email already exists
+            String checkSql = "SELECT id FROM students WHERE email = ?";
+            PreparedStatement checkPs = conn.prepareStatement(checkSql);
+            checkPs.setString(1, email);
+            if (checkPs.executeQuery().next()) {
+                response.sendRedirect("student_register.html?error=Email already registered. Please login.");
+                return;
+            }
+
             String sql = "INSERT INTO students (name, email, password) VALUES (?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, name);
             ps.setString(2, email);
-            ps.setString(3, password); // Note: In a real app, hash the password!
+            ps.setString(3, password);
             
             int row = ps.executeUpdate();
             if (row > 0) {
-                // Registration successful, send welcome email
-                String subject = "Welcome to Campus Complaint System";
-                String body = "<h3>Hello " + name + ",</h3>"
-                            + "<p>You have successfully registered to the Campus Complaint Management System.</p>"
-                            + "<p>Now you can login and lodge your complaints.</p>";
+                // Send welcome email (non-blocking — failure won't affect registration)
                 try {
+                    String subject = "Welcome to Campus Complaint System";
+                    String body = "<h3>Hello " + name + ",</h3>"
+                                + "<p>You have successfully registered to the Campus Complaint Management System.</p>"
+                                + "<p>Now you can login and lodge your complaints.</p>";
                     EmailUtil.sendEmail(email, subject, body);
-                } catch(Exception e) {
-                    System.out.println("Email notification failed: " + e.getMessage());
+                } catch (Exception emailEx) {
+                    System.out.println("Welcome email failed (registration still succeeded): " + emailEx.getMessage());
                 }
                 response.sendRedirect("student_login.html?msg=Registration Successful. Please Login.");
             } else {
-                response.sendRedirect("student_register.html?error=Registration Failed");
+                response.sendRedirect("student_register.html?error=Registration Failed. Please try again.");
             }
+        } catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation e) {
+            response.sendRedirect("student_register.html?error=Input too long. Please shorten your details.");
+        } catch (java.sql.SQLIntegrityConstraintViolationException e) {
+            response.sendRedirect("student_register.html?error=Email already registered. Please login.");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("student_register.html?error=An error occurred during registration");
+            response.sendRedirect("student_register.html?error=Server error: " + e.getClass().getSimpleName() + " - " + e.getMessage());
         }
     }
 }
