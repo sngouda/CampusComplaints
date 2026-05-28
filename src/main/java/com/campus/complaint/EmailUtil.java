@@ -1,70 +1,74 @@
 package com.campus.complaint;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
+/**
+ * Sends email via SendGrid HTTP API (port 443).
+ * Works on Render free tier — no SMTP port blocking.
+ *
+ * Requires environment variable: SENDGRID_API_KEY
+ * Requires a verified sender email in SendGrid dashboard.
+ */
 public class EmailUtil {
 
-    // IMPORTANT: Replace with valid email credentials before using.
     private static final String SENDER_EMAIL = "suhasgowda636227@gmail.com";
-    private static final String SENDER_PASSWORD = "irmqcidytsszyodq";
+    private static final String SENDER_NAME  = "CampusCare System";
+    private static final String API_URL      = "https://api.sendgrid.com/v3/mail/send";
 
     public static void sendEmail(String recipientEmail, String subject, String body) {
-        // Setup mail server properties
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
-        props.put("mail.smtp.connectiontimeout", "5000");  // 5 sec connect timeout
-        props.put("mail.smtp.timeout", "5000");            // 5 sec read timeout
-        props.put("mail.smtp.writetimeout", "5000");       // 5 sec write timeout
+        String apiKey = System.getenv("SENDGRID_API_KEY");
 
-        // Get the Session object
-        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
-            }
-        });
-        session.setDebug(true);
+        if (apiKey == null || apiKey.isEmpty()) {
+            System.out.println("SENDGRID_API_KEY not set — skipping email to " + recipientEmail);
+            return;
+        }
 
         try {
-            // Create a default MimeMessage object
-            Message message = new MimeMessage(session);
+            // Build JSON payload
+            String jsonBody = "{"
+                + "\"personalizations\":[{\"to\":[{\"email\":\"" + escapeJson(recipientEmail) + "\"}]}],"
+                + "\"from\":{\"email\":\"" + escapeJson(SENDER_EMAIL) + "\",\"name\":\"" + escapeJson(SENDER_NAME) + "\"},"
+                + "\"subject\":\"" + escapeJson(subject) + "\","
+                + "\"content\":[{\"type\":\"text/html\",\"value\":\"" + escapeJson(body) + "\"}]"
+                + "}";
 
-            // Set From: header with display name
-            try {
-                message.setFrom(new InternetAddress(SENDER_EMAIL, "CampusCare System"));
-            } catch (UnsupportedEncodingException e) {
-                message.setFrom(new InternetAddress(SENDER_EMAIL));
+            URL url = new URL(API_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
+            conn.setDoOutput(true);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
             }
 
-            // Set To: header field
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 202) {
+                System.out.println("Email sent successfully to: " + recipientEmail);
+            } else {
+                System.out.println("SendGrid returned HTTP " + responseCode + " for: " + recipientEmail);
+            }
+            conn.disconnect();
 
-            // Set Subject: header field
-            message.setSubject(subject);
-
-            // Set the actual message
-            message.setContent(body, "text/html; charset=utf-8");
-
-            // Send message
-            Transport.send(message);
-
-            System.out.println("Email sent successfully to: " + recipientEmail);
-
-        } catch (MessagingException e) {
-            System.err.println("Failed to send email to " + recipientEmail);
-            e.printStackTrace();
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.err.println("Email failed for " + recipientEmail + ": " + e.getMessage());
         }
+    }
+
+    // Escape special characters for JSON string
+    private static String escapeJson(String text) {
+        if (text == null) return "";
+        return text
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
 }
