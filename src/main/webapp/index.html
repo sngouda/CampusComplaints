@@ -11,17 +11,26 @@
 </head>
 <body>
     <div class="background-anim"></div>
+
+    <!-- Mobile nav drawer (outside header, no stacking context issues) -->
     <div class="nav-overlay" id="nav-overlay"></div>
+    <div class="mobile-drawer" id="main-nav">
+        <a href="index.html"         class="nav-link active">Home</a>
+        <a href="student_login.html" class="nav-link">Student Login</a>
+        <a href="admin_login.html"   class="nav-link">Admin Portal</a>
+    </div>
+
     <header class="glass-header">
         <div class="logo">CampusCare</div>
-        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
-            <span></span><span></span><span></span>
-        </button>
-        <nav id="main-nav">
+        <!-- Desktop nav -->
+        <nav class="desktop-nav">
             <a href="index.html"         class="nav-link active">Home</a>
             <a href="student_login.html" class="nav-link">Student Login</a>
             <a href="admin_login.html"   class="nav-link">Admin Portal</a>
         </nav>
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
     </header>
 
     <main class="hero-section">

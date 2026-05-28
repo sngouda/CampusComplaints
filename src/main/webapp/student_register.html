@@ -10,15 +10,19 @@
 <body>
     <div class="background-anim"></div>
     <div class="nav-overlay" id="nav-overlay"></div>
+    <div class="mobile-drawer" id="main-nav">
+        <a href="index.html"         class="nav-link">Home</a>
+        <a href="student_login.html" class="nav-link">Login</a>
+    </div>
     <header class="glass-header">
         <a href="index.html" style="text-decoration:none;"><div class="logo">StudentZone</div></a>
-        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
-            <span></span><span></span><span></span>
-        </button>
-        <nav id="main-nav">
+        <nav class="desktop-nav">
             <a href="index.html"         class="nav-link">Home</a>
             <a href="student_login.html" class="nav-link">Login</a>
         </nav>
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
     </header>
 
     <div class="auth-container">

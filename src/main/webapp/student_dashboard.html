@@ -10,16 +10,19 @@
 <body>
     <div class="background-anim"></div>
     <div class="nav-overlay" id="nav-overlay"></div>
+    <div class="mobile-drawer" id="main-nav">
+        <span class="nav-link" style="color:var(--text-muted);">Welcome, <span id="student-name">Student</span></span>
+        <a href="StudentLogoutServlet" class="nav-link" style="color:var(--warning);">Logout</a>
+    </div>
     <header class="glass-header">
         <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare</div></a>
+        <nav class="desktop-nav">
+            <span class="nav-link" style="color:var(--text-muted);">Welcome, Student</span>
+            <a href="StudentLogoutServlet" class="nav-link" style="color:var(--warning);">Logout</a>
+        </nav>
         <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
-        <nav id="main-nav">
-            <span class="nav-link" style="color:var(--text-muted);">Welcome, <span id="student-name">Student</span></span>
-            <!-- ✅ FIX: Points to StudentLogoutServlet + inline onclick -->
-            <a href="StudentLogoutServlet" class="nav-link active" style="color:var(--warning);">Logout</a>
-        </nav>
     </header>
 
     <div class="dashboard-container">
