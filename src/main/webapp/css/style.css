@@ -110,7 +110,7 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    z-index: 9990; /* ✅ FIX: lowered so nav links sit above it */
+    z-index: 9980; /* ✅ well below nav (9999) and nav links (10000) */
     -webkit-tap-highlight-color: transparent;
     pointer-events: none;
 }

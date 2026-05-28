@@ -20,16 +20,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mainNav) return;
         mainNav.classList.add('open');
         if (navOverlay) navOverlay.classList.add('open');
-        if (hamburger)  hamburger.setAttribute('aria-expanded', 'true');
-        hamburger && hamburger.classList.add('open');
+        if (hamburger) {
+            hamburger.setAttribute('aria-expanded', 'true');
+            hamburger.classList.add('open');
+        }
     }
 
     function closeNav() {
         if (!mainNav) return;
         mainNav.classList.remove('open');
         if (navOverlay) navOverlay.classList.remove('open');
-        if (hamburger)  hamburger.setAttribute('aria-expanded', 'false');
-        hamburger && hamburger.classList.remove('open');
+        if (hamburger) {
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.classList.remove('open');
+        }
     }
 
     if (hamburger) {
@@ -39,33 +43,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Overlay closes nav when tapped — but ONLY on the overlay itself
     if (navOverlay) {
         navOverlay.addEventListener('click', closeNav);
-        navOverlay.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            closeNav();
-        });
     }
 
-    // ✅ FIX: Force navigation on touch AND click for nav links
+    // ✅ KEY FIX: Directly wire every nav link with both click and touchstart
     if (mainNav) {
         mainNav.querySelectorAll('a').forEach(function (link) {
-            // Handle touch devices
-            link.addEventListener('touchend', function (e) {
+            link.addEventListener('touchstart', function (e) {
+                // touchstart fires before anything can block it
                 e.stopPropagation();
-                const href = this.getAttribute('href');
+            }, { passive: true });
+
+            link.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const href = link.getAttribute('href');
                 closeNav();
                 if (href && href !== '#') {
-                    setTimeout(function() {
-                        window.location.href = href;
-                    }, 50); // small delay to let menu close animation start
+                    window.location.href = href;
                 }
-            });
-
-            // Handle mouse/desktop click
-            link.addEventListener('click', function (e) {
-                closeNav();
-                // Let default navigation happen naturally
             });
         });
     }
@@ -78,21 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.querySelector('.close-btn');
 
     if (addBtn && modal && closeBtn) {
-        addBtn.addEventListener('click', () => {
-            modal.classList.add('active');
-        });
-        closeBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-        });
+        addBtn.addEventListener('click', () => modal.classList.add('active'));
+        closeBtn.addEventListener('click', () => modal.classList.remove('active'));
         window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
+            if (e.target === modal) modal.classList.remove('active');
         });
     }
 });
 
-// Helper to show errors
 function showError(msg) {
     const errorDiv = document.getElementById('error-alert');
     if (errorDiv) {
@@ -102,7 +92,6 @@ function showError(msg) {
     }
 }
 
-// Helper to show success
 function showSuccess(msg) {
     const successDiv = document.getElementById('success-alert');
     if (successDiv) {
@@ -112,7 +101,6 @@ function showSuccess(msg) {
     }
 }
 
-// Helper to determine badge class based on status
 function getBadgeClass(status) {
     if (status === 'Resolved')    return 'badge-resolved';
     if (status === 'In Progress') return 'badge-progress';
