@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams  = new URLSearchParams(window.location.search);
     const errorMsg   = urlParams.get('error');
     const successMsg = urlParams.get('msg');
-
     if (errorMsg)    showError(errorMsg);
     if (successMsg)  showSuccess(successMsg);
 
@@ -42,17 +41,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (navOverlay) {
         navOverlay.addEventListener('click', closeNav);
+        navOverlay.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            closeNav();
+        });
     }
 
-    // ✅ FIX: Let nav links navigate AND close the menu
-    // pointer-events on the overlay was blocking clicks — this ensures
-    // the link fires first, then the menu closes.
+    // ✅ FIX: Force navigation on touch AND click for nav links
     if (mainNav) {
         mainNav.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', function (e) {
-                // Close the menu visually but DO NOT prevent default —
-                // the browser will follow the href normally.
+            // Handle touch devices
+            link.addEventListener('touchend', function (e) {
+                e.stopPropagation();
+                const href = this.getAttribute('href');
                 closeNav();
+                if (href && href !== '#') {
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 50); // small delay to let menu close animation start
+                }
+            });
+
+            // Handle mouse/desktop click
+            link.addEventListener('click', function (e) {
+                closeNav();
+                // Let default navigation happen naturally
             });
         });
     }
@@ -68,11 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
         addBtn.addEventListener('click', () => {
             modal.classList.add('active');
         });
-
         closeBtn.addEventListener('click', () => {
             modal.classList.remove('active');
         });
-
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.remove('active');
