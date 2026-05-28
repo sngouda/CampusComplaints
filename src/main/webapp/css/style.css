@@ -112,10 +112,12 @@ body {
     background: rgba(0, 0, 0, 0.55);
     z-index: 9998;
     -webkit-tap-highlight-color: transparent;
+    pointer-events: none;
 }
 
 .nav-overlay.open {
     display: block;
+    pointer-events: auto;
 }
 
 nav {
@@ -136,8 +138,12 @@ nav .nav-link {
 
 nav .nav-link:hover,
 nav .nav-link.active {
-    opacity: 1;
-    color: #818cf8;
+    color: #818cf8 !important;
+    pointer-events: auto !important;
+}
+nav.open .nav-link {
+    pointer-events: auto !important;
+    cursor: pointer !important;
 }
 
 /* =============================================
