@@ -14,9 +14,13 @@
 </head>
 <body>
     <div class="background-anim"></div>
+    <div class="nav-overlay" id="nav-overlay"></div>
     <header class="glass-header">
         <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div></a>
-        <nav>
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="main-nav">
             <a href="index.html" class="nav-link">Home</a>
             <a href="student_login.html" class="nav-link">Student Login</a>
         </nav>

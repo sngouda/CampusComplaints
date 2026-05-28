@@ -9,9 +9,13 @@
 </head>
 <body>
     <div class="background-anim"></div>
+    <div class="nav-overlay" id="nav-overlay"></div>
     <header class="glass-header">
         <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare</div></a>
-        <nav>
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="main-nav">
             <span class="nav-link" style="color:var(--text-muted);">Welcome, <span id="student-name">Student</span></span>
             <a href="student_login.html" class="nav-link active">Logout</a>
         </nav>

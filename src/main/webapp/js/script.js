@@ -6,22 +6,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const errorMsg = urlParams.get('error');
     const successMsg = urlParams.get('msg');
-    
-    if (errorMsg) {
-        showError(errorMsg);
+
+    if (errorMsg)   showError(errorMsg);
+    if (successMsg) showSuccess(successMsg);
+
+    // ----------------------------------------------------
+    // Hamburger / Mobile Nav
+    // ----------------------------------------------------
+    const hamburger  = document.getElementById('hamburger');
+    const mainNav    = document.getElementById('main-nav');
+    const navOverlay = document.getElementById('nav-overlay');
+
+    function openNav() {
+        mainNav    && mainNav.classList.add('open');
+        navOverlay && navOverlay.classList.add('open');
+        hamburger  && hamburger.classList.add('open');
+        hamburger  && hamburger.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
     }
-    if (successMsg) {
-        showSuccess(successMsg);
+
+    function closeNav() {
+        mainNav    && mainNav.classList.remove('open');
+        navOverlay && navOverlay.classList.remove('open');
+        hamburger  && hamburger.classList.remove('open');
+        hamburger  && hamburger.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+
+    if (hamburger) {
+        hamburger.addEventListener('click', () => {
+            mainNav && mainNav.classList.contains('open') ? closeNav() : openNav();
+        });
+    }
+
+    if (navOverlay) {
+        navOverlay.addEventListener('click', closeNav);
+    }
+
+    // Close nav when a link is tapped on mobile
+    if (mainNav) {
+        mainNav.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', closeNav);
+        });
     }
 
     // ----------------------------------------------------
     // Modal Logic
     // ----------------------------------------------------
-    const addBtn = document.getElementById('add-complaint-btn');
-    const modal = document.getElementById('complaint-modal');
+    const addBtn  = document.getElementById('add-complaint-btn');
+    const modal   = document.getElementById('complaint-modal');
     const closeBtn = document.querySelector('.close-btn');
 
-    if(addBtn && modal && closeBtn) {
+    if (addBtn && modal && closeBtn) {
         addBtn.addEventListener('click', () => {
             modal.classList.add('active');
         });
