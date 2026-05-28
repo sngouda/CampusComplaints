@@ -110,14 +110,13 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    z-index: 9980; /* ✅ well below nav (9999) and nav links (10000) */
+    z-index: 9998;
     -webkit-tap-highlight-color: transparent;
-    pointer-events: none;
+    cursor: pointer;
 }
 
 .nav-overlay.open {
     display: block;
-    pointer-events: auto;
 }
 
 nav {
@@ -736,7 +735,7 @@ nav .nav-link.active {
         background: #0d1526 !important;
         border-left: 1px solid rgba(255,255,255,0.15) !important;
         padding: 80px 1.5rem 2rem !important;
-        z-index: 9999 !important; /* ✅ stays above overlay which is now 9990 */
+        z-index: 9999 !important;
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 0 !important;
@@ -745,10 +744,12 @@ nav .nav-link.active {
         transition: transform 0.3s ease !important;
         box-shadow: -8px 0 32px rgba(0,0,0,0.6) !important;
         overflow-y: auto !important;
+        pointer-events: none !important;
     }
 
     nav.open {
         transform: translateX(0) !important;
+        pointer-events: auto !important;
     }
 
     nav .nav-link {
@@ -761,10 +762,7 @@ nav .nav-link.active {
         display: block !important;
         color: #f8fafc !important;
         text-decoration: none !important;
-        pointer-events: auto !important;        /* ✅ ensure links are always clickable */
-        position: relative !important;          /* ✅ ensure links stack above overlay */
-        z-index: 10000 !important;              /* ✅ links sit above everything */
-        -webkit-tap-highlight-color: transparent !important;
+        -webkit-tap-highlight-color: rgba(129,140,248,0.2) !important;
     }
 
     nav .nav-link:last-child {
@@ -773,6 +771,7 @@ nav .nav-link.active {
 
     nav .nav-link:active {
         color: #818cf8 !important;
+        background: rgba(129,140,248,0.1) !important;
     }
 
     /* Hero */
