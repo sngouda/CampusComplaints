@@ -1,5 +1,7 @@
 package com.campus.complaint;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -49,7 +51,11 @@ public class TrackComplaintServlet extends HttpServlet {
                 json.append("\"priority\":\"").append(rs.getString("priority")).append("\",");
                 json.append("\"category\":\"").append(rs.getString("category")).append("\","); // ✅ NEW
                 json.append("\"status\":\"").append(rs.getString("status")).append("\",");
-                json.append("\"date\":\"").append(rs.getTimestamp("created_at").toInstant().toString()).append("\"");
+                json.append("\"date\":\"").append(
+                    rs.getTimestamp("created_at").toInstant()
+                      .atZone(ZoneId.of("Asia/Kolkata"))
+                      .format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"))
+                ).append("\"");
                 json.append("}");
                 first = false;
             }

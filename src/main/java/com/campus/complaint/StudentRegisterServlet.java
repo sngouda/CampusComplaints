@@ -38,16 +38,24 @@ public class StudentRegisterServlet extends HttpServlet {
             
             int row = ps.executeUpdate();
             if (row > 0) {
-                // Send welcome email (non-blocking — failure won't affect registration)
-                try {
-                    String subject = "Welcome to Campus Complaint System";
-                    String body = "<h3>Hello " + name + ",</h3>"
+                // Send welcome email in background — never blocks registration
+                final String fName = name;
+                final String fEmail = email;
+                new Thread(() -> {
+                    try {
+                        String subject = "Welcome to CampusCare - Registration Successful";
+                        String body = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>"
+                                + "<h2 style='color:#6366f1;'>🎓 Welcome to CampusCare</h2>"
+                                + "<p>Hello <strong>" + fName + "</strong>,</p>"
                                 + "<p>You have successfully registered to the Campus Complaint Management System.</p>"
-                                + "<p>Now you can login and lodge your complaints.</p>";
-                    EmailUtil.sendEmail(email, subject, body);
-                } catch (Exception emailEx) {
-                    System.out.println("Welcome email failed (registration still succeeded): " + emailEx.getMessage());
-                }
+                                + "<p>You can now login and lodge your complaints.</p>"
+                                + "<br><p style='color:#94a3b8;font-size:0.85rem;'>— CampusCare System</p>"
+                                + "</div>";
+                        EmailUtil.sendEmail(fEmail, subject, body);
+                    } catch (Exception emailEx) {
+                        System.out.println("Welcome email failed (registration still succeeded): " + emailEx.getMessage());
+                    }
+                }).start();
                 response.sendRedirect("student_login.html?msg=Registration Successful. Please Login.");
             } else {
                 response.sendRedirect("student_register.html?error=Registration Failed. Please try again.");

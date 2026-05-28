@@ -41,17 +41,26 @@ public class AddComplaintServlet extends HttpServlet {
             ps.setString(4, priority);
             ps.setString(5, category); // ✅ NEW
 
-            int row = ps.executeUpdate();
             if (row > 0) {
-                String subject = "Complaint Registered Successfully";
-                String body = "<h3>Hello " + studentName + ",</h3>"
-                            + "<p>Your complaint regarding <b>" + title + "</b> has been successfully registered.</p>"
-                            + "<p>You can track its status from your dashboard.</p>";
-                try {
-                    EmailUtil.sendEmail(studentEmail, subject, body);
-                } catch (Exception e) {
-                    System.out.println("Email notification failed: " + e.getMessage());
-                }
+                // Send welcome email in background — never blocks registration
+                final String fName = studentName;
+                final String fEmail = studentEmail;
+                final String fTitle = title;
+                new Thread(() -> {
+                    try {
+                        String subject = "Complaint Registered Successfully - CampusCare";
+                        String body = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>"
+                                + "<h2 style='color:#6366f1;'>📋 Complaint Registered</h2>"
+                                + "<p>Hello <strong>" + fName + "</strong>,</p>"
+                                + "<p>Your complaint titled <strong>\"" + fTitle + "\"</strong> has been successfully registered.</p>"
+                                + "<p>You can track its status from your dashboard.</p>"
+                                + "<br><p style='color:#94a3b8;font-size:0.85rem;'>— CampusCare System</p>"
+                                + "</div>";
+                        EmailUtil.sendEmail(fEmail, subject, body);
+                    } catch (Exception e) {
+                        System.out.println("Complaint email failed: " + e.getMessage());
+                    }
+                }).start();
                 response.sendRedirect("student_dashboard.html?msg=Complaint Added Successfully");
             } else {
                 response.sendRedirect("student_dashboard.html?error=Failed to Add Complaint");

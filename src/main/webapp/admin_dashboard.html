@@ -167,7 +167,7 @@
         }
 
         function buildCard(complaint) {
-            const date = new Date(complaint.date).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+            const date = complaint.date;
             const priority = complaint.priority||'Medium';
             const category = complaint.category||'Others';
             const item = document.createElement('div');
@@ -222,14 +222,13 @@
                 body: formData.toString()
             })
             .then(function(r) {
-                return r.text().then(function(text) { return { ok: r.ok, text: text }; });
+                return r.json().then(function(data) { return { ok: r.ok, data: data }; });
             })
             .then(function(result) {
                 btn.disabled = false;
                 btn.textContent = 'Update Status';
 
-                if (result.ok) {
-                    // Update badge directly on the card
+                if (result.ok && result.data.success) {
                     const card = btn.closest('.complaint-item');
                     if (card) {
                         const badge = card.querySelector('.badge-pending, .badge-progress, .badge-resolved');
@@ -242,7 +241,7 @@
                     }
                     showToast('✅ Status updated to "' + newStatus + '"', 'success');
                 } else {
-                    showToast('❌ Failed to update status. Try again.', 'error');
+                    showToast('❌ ' + (result.data.message || 'Failed to update status.'), 'error');
                 }
             })
             .catch(function(err) {

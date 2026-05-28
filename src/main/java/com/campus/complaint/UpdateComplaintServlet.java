@@ -15,59 +15,69 @@ import javax.servlet.http.HttpSession;
 public class UpdateComplaintServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("admin_id") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;
         }
-        
+
         int complaintId = Integer.parseInt(request.getParameter("id"));
         String newStatus = request.getParameter("status");
-        
+
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "UPDATE complaints SET status = ? WHERE id = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, newStatus);
             ps.setInt(2, complaintId);
-            
+
             int row = ps.executeUpdate();
             if (row > 0) {
-                // If status is Resolved, send email to student
+                // Send email in background thread — never blocks the HTTP response
                 if ("Resolved".equalsIgnoreCase(newStatus)) {
-                    // Fetch student email and name
-                    String fetchSql = "SELECT s.email, s.name, c.title FROM complaints c JOIN students s ON c.student_id = s.id WHERE c.id = ?";
+                    String fetchSql = "SELECT s.email, s.name, c.title FROM complaints c "
+                                    + "JOIN students s ON c.student_id = s.id WHERE c.id = ?";
                     PreparedStatement fetchPs = conn.prepareStatement(fetchSql);
                     fetchPs.setInt(1, complaintId);
                     ResultSet rs = fetchPs.executeQuery();
                     if (rs.next()) {
-                        String email = rs.getString("email");
-                        String name = rs.getString("name");
-                        String title = rs.getString("title");
-                        
-                        String subject = "Complaint Resolved: Campus Complaint System";
-                        String body = "<h3>Hello " + name + ",</h3>"
-                                    + "<p>Great news! Your complaint regarding <b>" + title + "</b> has been <b>RESOLVED</b>.</p>"
-                                    + "<p>Thank you for helping us maintain the campus.</p>";
-                        try {
-                            EmailUtil.sendEmail(email, subject, body);
-                        } catch(Exception e) {
-                            System.out.println("Status updated, but email notification failed: " + e.getMessage());
-                        }
+                        final String email = rs.getString("email");
+                        final String name  = rs.getString("name");
+                        final String title = rs.getString("title");
+
+                        // Fire-and-forget email thread
+                        new Thread(() -> {
+                            try {
+                                String subject = "Your Complaint Has Been Resolved - CampusCare";
+                                String body = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>"
+                                        + "<h2 style='color:#10b981;'>✅ Complaint Resolved</h2>"
+                                        + "<p>Hello <strong>" + name + "</strong>,</p>"
+                                        + "<p>Your complaint titled <strong>\"" + title + "\"</strong> has been <strong style='color:#10b981;'>RESOLVED</strong> by the administration.</p>"
+                                        + "<p>Thank you for helping us maintain a better campus.</p>"
+                                        + "<br><p style='color:#94a3b8;font-size:0.85rem;'>— CampusCare System</p>"
+                                        + "</div>";
+                                EmailUtil.sendEmail(email, subject, body);
+                            } catch (Exception e) {
+                                System.out.println("Email failed (status still updated): " + e.getMessage());
+                            }
+                        }).start();
                     }
                 }
-                response.getWriter().write("Success");
+
+                // Respond immediately — don't wait for email
+                response.setContentType("application/json");
+                response.getWriter().write("{\"success\":true,\"message\":\"Status updated to " + newStatus + "\"}");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Failed to update status");
+                response.getWriter().write("{\"success\":false,\"message\":\"No record updated\"}");
             }
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Server Error");
+            response.getWriter().write("{\"success\":false,\"message\":\"Server error: " + e.getMessage() + "\"}");
         }
     }
 }
