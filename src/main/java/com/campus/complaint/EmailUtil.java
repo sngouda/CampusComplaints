@@ -1,5 +1,6 @@
 package com.campus.complaint;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -36,8 +37,12 @@ public class EmailUtil {
             // Create a default MimeMessage object
             Message message = new MimeMessage(session);
 
-            // Set From: header field
-            message.setFrom(new InternetAddress(SENDER_EMAIL));
+            // Set From: header with display name
+            try {
+                message.setFrom(new InternetAddress(SENDER_EMAIL, "CampusCare System"));
+            } catch (UnsupportedEncodingException e) {
+                message.setFrom(new InternetAddress(SENDER_EMAIL));
+            }
 
             // Set To: header field
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));

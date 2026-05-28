@@ -49,7 +49,7 @@ public class TrackComplaintServlet extends HttpServlet {
                 json.append("\"priority\":\"").append(rs.getString("priority")).append("\",");
                 json.append("\"category\":\"").append(rs.getString("category")).append("\","); // ✅ NEW
                 json.append("\"status\":\"").append(rs.getString("status")).append("\",");
-                json.append("\"date\":\"").append(rs.getTimestamp("created_at").toString()).append("\"");
+                json.append("\"date\":\"").append(rs.getTimestamp("created_at").toInstant().toString()).append("\"");
                 json.append("}");
                 first = false;
             }

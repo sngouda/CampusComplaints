@@ -8,6 +8,23 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         .background-anim { background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(15,23,42,1) 50%); }
+        /* Fixed toast notification */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.9rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            z-index: 99999;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .toast.success { background: rgba(16,185,129,0.95); color: white; border: 1px solid #10b981; }
+        .toast.error   { background: rgba(239,68,68,0.95);  color: white; border: 1px solid #ef4444; }
         .admin-controls { display:flex; gap:1rem; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--glass-border); align-items:center; flex-wrap:wrap; }
         .admin-controls select { padding:0.5rem 0.8rem; border-radius:5px; background:rgba(15,23,42,0.8); color:white; border:1px solid var(--glass-border); flex:1; min-width:140px; }
         .admin-controls button.update-btn { padding:0.5rem 1.2rem; border-radius:5px; background:var(--warning); color:white; border:none; cursor:pointer; font-weight:600; transition:opacity 0.2s; }
@@ -39,6 +56,8 @@
 </head>
 <body>
     <div class="background-anim"></div>
+    <!-- Fixed toast for status updates -->
+    <div id="status-toast" class="toast"></div>
     <div class="nav-overlay" id="nav-overlay"></div>
     <div class="mobile-drawer" id="main-nav">
         <span class="nav-link" style="color:var(--text-muted);">Welcome, Admin</span>
@@ -148,7 +167,7 @@
         }
 
         function buildCard(complaint) {
-            const date = new Date(complaint.date).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+            const date = new Date(complaint.date).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
             const priority = complaint.priority||'Medium';
             const category = complaint.category||'Others';
             const item = document.createElement('div');
@@ -178,11 +197,18 @@
             return item;
         }
 
+        function showToast(msg, type) {
+            const toast = document.getElementById('status-toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(function(){ toast.style.display = 'none'; }, 3500);
+        }
+
         function updateStatus(id) {
             const btn = event.target;
             const newStatus = document.getElementById('status-' + id).value;
 
-            // Disable button while updating
             btn.disabled = true;
             btn.textContent = 'Updating...';
 
@@ -196,49 +222,34 @@
                 body: formData.toString()
             })
             .then(function(r) {
-                return r.text().then(function(text) {
-                    return { ok: r.ok, text: text };
-                });
+                return r.text().then(function(text) { return { ok: r.ok, text: text }; });
             })
             .then(function(result) {
                 btn.disabled = false;
                 btn.textContent = 'Update Status';
 
                 if (result.ok) {
-                    // Update the badge on the card directly without reloading
+                    // Update badge directly on the card
                     const card = btn.closest('.complaint-item');
                     if (card) {
-                        const badge = card.querySelector('.badge.badge-pending, .badge.badge-progress, .badge.badge-resolved');
+                        const badge = card.querySelector('.badge-pending, .badge-progress, .badge-resolved');
                         if (badge) {
                             badge.className = 'badge ' + getBadgeClass(newStatus);
                             badge.textContent = newStatus;
                         }
-                        // Update in allComplaints array too
                         const c = allComplaints.find(function(x){ return x.id === id; });
                         if (c) c.status = newStatus;
                     }
-
-                    // Show success toast
-                    const successDiv = document.getElementById('success-alert');
-                    successDiv.textContent = '✅ Status updated to "' + newStatus + '" successfully!';
-                    successDiv.style.display = 'block';
-                    successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    setTimeout(function(){ successDiv.style.display = 'none'; }, 4000);
+                    showToast('✅ Status updated to "' + newStatus + '"', 'success');
                 } else {
-                    const errorDiv = document.getElementById('error-alert');
-                    errorDiv.textContent = '❌ Failed to update status. Please try again.';
-                    errorDiv.style.display = 'block';
-                    setTimeout(function(){ errorDiv.style.display = 'none'; }, 4000);
+                    showToast('❌ Failed to update status. Try again.', 'error');
                 }
             })
             .catch(function(err) {
                 btn.disabled = false;
                 btn.textContent = 'Update Status';
                 console.error(err);
-                const errorDiv = document.getElementById('error-alert');
-                errorDiv.textContent = '❌ Network error. Please check your connection.';
-                errorDiv.style.display = 'block';
-                setTimeout(function(){ errorDiv.style.display = 'none'; }, 4000);
+                showToast('❌ Network error. Check your connection.', 'error');
             });
         }
 
