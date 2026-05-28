@@ -18,9 +18,10 @@
             <span></span><span></span><span></span>
         </button>
         <nav id="main-nav">
-            <a href="index.html" class="nav-link active">Home</a>
-            <a href="student_login.html" class="nav-link">Student Login</a>
-            <a href="admin_login.html" class="nav-link">Admin Portal</a>
+            <!-- ✅ FIX: onclick added to every nav link -->
+            <a href="index.html"         class="nav-link active" onclick="window.location.href='index.html'; return false;">Home</a>
+            <a href="student_login.html" class="nav-link"        onclick="window.location.href='student_login.html'; return false;">Student Login</a>
+            <a href="admin_login.html"   class="nav-link"        onclick="window.location.href='admin_login.html'; return false;">Admin Portal</a>
         </nav>
     </header>
 

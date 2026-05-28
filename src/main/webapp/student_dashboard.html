@@ -17,12 +17,14 @@
         </button>
         <nav id="main-nav">
             <span class="nav-link" style="color:var(--text-muted);">Welcome, <span id="student-name">Student</span></span>
-            <a href="student_login.html" class="nav-link active">Logout</a>
+            <!-- ✅ FIX: Points to StudentLogoutServlet + inline onclick -->
+            <a href="StudentLogoutServlet" class="nav-link active" style="color:var(--warning);"
+               onclick="window.location.href='StudentLogoutServlet'; return false;">Logout</a>
         </nav>
     </header>
 
     <div class="dashboard-container">
-        <div id="error-alert" class="alert alert-error" style="max-width:800px; margin:0 auto 1.5rem auto;"></div>
+        <div id="error-alert"   class="alert alert-error"   style="max-width:800px; margin:0 auto 1.5rem auto;"></div>
         <div id="success-alert" class="alert alert-success" style="max-width:800px; margin:0 auto 1.5rem auto;"></div>
 
         <div class="dashboard-header" style="max-width:800px; margin:0 auto;">
@@ -58,7 +60,6 @@
                         <option value="Low">🟢 Low Priority</option>
                     </select>
                 </div>
-                <!-- ✅ BUG FIX: Category dropdown was missing from the form -->
                 <div class="form-group">
                     <label for="category">Category</label>
                     <select id="category" name="category" class="form-control priority-select" required>
@@ -127,36 +128,14 @@
                     });
                 })
                 .catch(err => {
-                    if (err.message !== 'Failed to load complaints') {
-                        console.error(err);
-                    }
+                    if (err.message !== 'Failed to load complaints') console.error(err);
                 });
         });
 
-        function getPriorityBadgeClass(priority) {
-            if (priority === 'High') return 'badge-priority-high';
-            if (priority === 'Low') return 'badge-priority-low';
-            return 'badge-priority-medium';
-        }
-
-        function getPriorityBorderColor(priority) {
-            if (priority === 'High') return '#ef4444';
-            if (priority === 'Low') return '#10b981';
-            return '#f59e0b';
-        }
-
-        function getPriorityIcon(priority) {
-            if (priority === 'High') return '🔴';
-            if (priority === 'Low') return '🟢';
-            return '🟡';
-        }
-
-        function getCategoryIcon(category) {
-            if (category === 'Infrastructure') return '🏗️';
-            if (category === 'Campus') return '🏫';
-            if (category === 'Hostel') return '🏠';
-            return '📁';
-        }
+        function getPriorityBadgeClass(p) { return p==='High'?'badge-priority-high':p==='Low'?'badge-priority-low':'badge-priority-medium'; }
+        function getPriorityBorderColor(p) { return p==='High'?'#ef4444':p==='Low'?'#10b981':'#f59e0b'; }
+        function getPriorityIcon(p)        { return p==='High'?'🔴':p==='Low'?'🟢':'🟡'; }
+        function getCategoryIcon(c)        { return c==='Infrastructure'?'🏗️':c==='Campus'?'🏫':c==='Hostel'?'🏠':'📁'; }
     </script>
 </body>
 </html>

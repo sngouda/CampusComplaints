@@ -1,5 +1,6 @@
 // Common Utility Functions
 document.addEventListener('DOMContentLoaded', () => {
+
     // ----------------------------------------------------
     // URL Parameter parsing for alerts
     // ----------------------------------------------------
@@ -43,27 +44,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Overlay closes nav when tapped — but ONLY on the overlay itself
+    // Close nav when clicking the overlay
     if (navOverlay) {
-        navOverlay.addEventListener('click', closeNav);
+        navOverlay.addEventListener('click', function(e) {
+            closeNav();
+        });
     }
 
-    // ✅ KEY FIX: Directly wire every nav link with both click and touchstart
-    if (mainNav) {
-        mainNav.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('touchstart', function (e) {
-                // touchstart fires before anything can block it
-                e.stopPropagation();
-            }, { passive: true });
+    // Close nav when clicking anywhere outside the nav and hamburger
+    document.addEventListener('click', function(e) {
+        if (!mainNav) return;
+        if (!mainNav.contains(e.target) && !hamburger.contains(e.target)) {
+            closeNav();
+        }
+    });
 
-            link.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const href = link.getAttribute('href');
-                closeNav();
-                if (href && href !== '#') {
-                    window.location.href = href;
-                }
-            });
+    // ✅ THE REAL FIX: inline onclick on each link — bypasses all event blocking
+    if (mainNav) {
+        mainNav.querySelectorAll('a').forEach(function(link) {
+            const href = link.getAttribute('href');
+            if (href && href !== '#') {
+                // Set onclick directly on the element — most reliable on mobile
+                link.setAttribute('onclick', "window.location.href='" + href + "'; return false;");
+            }
         });
     }
 

@@ -16,18 +16,19 @@
             <span></span><span></span><span></span>
         </button>
         <nav id="main-nav">
-            <a href="index.html" class="nav-link">Home</a>
-            <a href="student_register.html" class="nav-link">Register</a>
+            <!-- ✅ FIX: onclick added to every nav link -->
+            <a href="index.html"            class="nav-link" onclick="window.location.href='index.html'; return false;">Home</a>
+            <a href="student_register.html" class="nav-link" onclick="window.location.href='student_register.html'; return false;">Register</a>
         </nav>
     </header>
 
     <div class="auth-container">
         <div class="glass-card auth-card">
             <h2 class="auth-title">Student Login</h2>
-            
-            <div id="error-alert" class="alert alert-error"></div>
+
+            <div id="error-alert"   class="alert alert-error"></div>
             <div id="success-alert" class="alert alert-success"></div>
-            
+
             <form action="StudentLoginServlet" method="POST">
                 <div class="form-group">
                     <label for="email">Email Address</label>
@@ -39,7 +40,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary submit-btn">Login</button>
             </form>
-            
+
             <div class="auth-links">
                 Don't have an account? <a href="student_register.html">Register here</a>
             </div>

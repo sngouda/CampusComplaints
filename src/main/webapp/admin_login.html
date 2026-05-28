@@ -16,22 +16,25 @@
     <div class="background-anim"></div>
     <div class="nav-overlay" id="nav-overlay"></div>
     <header class="glass-header">
-        <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div></a>
+        <a href="index.html" style="text-decoration:none;">
+            <div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div>
+        </a>
         <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
         <nav id="main-nav">
-            <a href="index.html" class="nav-link">Home</a>
-            <a href="student_login.html" class="nav-link">Student Login</a>
+            <!-- ✅ FIX: onclick added to every nav link -->
+            <a href="index.html"         class="nav-link" onclick="window.location.href='index.html'; return false;">Home</a>
+            <a href="student_login.html" class="nav-link" onclick="window.location.href='student_login.html'; return false;">Student Login</a>
         </nav>
     </header>
 
     <div class="auth-container">
         <div class="glass-card auth-card" style="border-top: 4px solid var(--warning);">
             <h2 class="auth-title">Admin Portal</h2>
-            
+
             <div id="error-alert" class="alert alert-error"></div>
-            
+
             <form action="AdminLoginServlet" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
