@@ -23,27 +23,28 @@ public class AddComplaintServlet extends HttpServlet {
             return;
         }
 
-        int studentId = (int) session.getAttribute("student_id");
-        String studentName = (String) session.getAttribute("student_name");
+        int studentId       = (int)    session.getAttribute("student_id");
+        String studentName  = (String) session.getAttribute("student_name");
         String studentEmail = (String) session.getAttribute("student_email");
 
-        String title = request.getParameter("title");
+        String title       = request.getParameter("title");
         String description = request.getParameter("description");
-        String priority = request.getParameter("priority");
-        String category = request.getParameter("category"); // ✅ NEW
+        String priority    = request.getParameter("priority");
+        String category    = request.getParameter("category");
 
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "INSERT INTO complaints (student_id, title, description, priority, category, status) VALUES (?, ?, ?, ?, ?, 'Pending')"; // ✅ NEW
+            String sql = "INSERT INTO complaints (student_id, title, description, priority, category, status) VALUES (?, ?, ?, ?, ?, 'Pending')";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, studentId);
             ps.setString(2, title);
             ps.setString(3, description);
             ps.setString(4, priority);
-            ps.setString(5, category); // ✅ NEW
+            ps.setString(5, category);
 
+            int row = ps.executeUpdate();
             if (row > 0) {
-                // Send welcome email in background — never blocks registration
-                final String fName = studentName;
+                // Send email in background thread — never blocks the response
+                final String fName  = studentName;
                 final String fEmail = studentEmail;
                 final String fTitle = title;
                 new Thread(() -> {
@@ -61,6 +62,7 @@ public class AddComplaintServlet extends HttpServlet {
                         System.out.println("Complaint email failed: " + e.getMessage());
                     }
                 }).start();
+
                 response.sendRedirect("student_dashboard.html?msg=Complaint Added Successfully");
             } else {
                 response.sendRedirect("student_dashboard.html?error=Failed to Add Complaint");
