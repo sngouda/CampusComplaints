@@ -9,70 +9,76 @@ import java.nio.charset.StandardCharsets;
 
 public class EmailUtil {
 
-    private static final String SENDER_NAME = "CampusCare System";
-    private static final String API_URL     = "https://api.resend.com/emails";
+    private static final String API_URL = "https://api.resend.com/emails";
 
     public static void sendEmail(String recipientEmail, String subject, String body) {
 
         String apiKey = System.getenv("RESEND_API_KEY");
-
         if (apiKey == null || apiKey.isEmpty()) {
             System.out.println("[EMAIL] RESEND_API_KEY not set — skipping");
             return;
         }
-
-        // Strip any accidental whitespace/newlines from the key
         apiKey = apiKey.trim();
 
-        // Resend free plan: only sends to your own verified email
-        // Set RESEND_TO_EMAIL in Render env to override recipient
+        // Use RESEND_TO_EMAIL override if set (Resend free plan restriction)
         String toEmail = System.getenv("RESEND_TO_EMAIL");
-        if (toEmail == null || toEmail.isEmpty()) {
+        if (toEmail == null || toEmail.trim().isEmpty()) {
             toEmail = recipientEmail;
         }
+        toEmail = toEmail.trim();
 
-        System.out.println("[EMAIL] Attempting to send to: " + toEmail + " | Subject: " + subject);
+        System.out.println("[EMAIL] Sending to: " + toEmail + " | Subject: " + subject);
 
         try {
-            String jsonBody = "{"
-                + "\"from\":\"CampusCare System <onboarding@resend.dev>\","
-                + "\"to\":[\"" + escapeJson(toEmail) + "\"],"
-                + "\"subject\":\"" + escapeJson(subject) + "\","
-                + "\"html\":\"" + escapeJson(body) + "\""
-                + "}";
+            // Build JSON manually with safe escaping
+            // Use simple plain text to avoid HTML escaping issues
+            String safeSubject = subject.replace("\\", "").replace("\"", "'");
+            String safeHtml    = body.replace("\\", "").replace("\"", "'");
+            String safeFrom    = "CampusCare <onboarding@resend.dev>";
+            String safeTo      = toEmail.replace("\"", "");
 
-            System.out.println("[EMAIL] Payload: " + jsonBody.substring(0, Math.min(200, jsonBody.length())));
+            String jsonBody = "{\"from\":\"" + safeFrom + "\","
+                            + "\"to\":[\"" + safeTo + "\"],"
+                            + "\"subject\":\"" + safeSubject + "\","
+                            + "\"html\":\"" + safeHtml + "\"}";
+
+            byte[] postData = jsonBody.getBytes(StandardCharsets.UTF_8);
 
             URL url = new URL(API_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Authorization", "Bearer " + apiKey);
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Content-Length", String.valueOf(postData.length));
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
             conn.setDoOutput(true);
 
             try (OutputStream os = conn.getOutputStream()) {
-                os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
+                os.write(postData);
+                os.flush();
             }
 
             int code = conn.getResponseCode();
-            System.out.println("[EMAIL] Resend HTTP response code: " + code);
+            System.out.println("[EMAIL] HTTP response: " + code);
 
-            // Read response body for debugging
+            // Read response
             BufferedReader reader;
-            if (code >= 200 && code < 300) {
-                reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            } else {
-                reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+            try {
+                reader = new BufferedReader(new InputStreamReader(
+                    code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(),
+                    StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                System.out.println("[EMAIL] Could not read response: " + e.getMessage());
+                conn.disconnect();
+                return;
             }
-            StringBuilder responseBody = new StringBuilder();
+
+            StringBuilder resp = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null) {
-                responseBody.append(line);
-            }
+            while ((line = reader.readLine()) != null) resp.append(line);
             reader.close();
-            System.out.println("[EMAIL] Resend response body: " + responseBody.toString());
+            System.out.println("[EMAIL] Response: " + resp);
 
             if (code == 200 || code == 201) {
                 System.out.println("[EMAIL] SUCCESS - sent to: " + toEmail);
@@ -83,18 +89,7 @@ public class EmailUtil {
             conn.disconnect();
 
         } catch (Exception e) {
-            System.err.println("[EMAIL] Exception: " + e.getClass().getName() + " - " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("[EMAIL] Exception: " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
-    }
-
-    private static String escapeJson(String text) {
-        if (text == null) return "";
-        return text
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t");
     }
 }

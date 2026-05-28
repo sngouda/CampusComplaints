@@ -1,18 +1,19 @@
 package com.campus.complaint;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Test endpoint to verify email is working.
- * Access: https://campuscomplaints.onrender.com/TestEmailServlet
- * Remove this servlet after testing.
- */
 @WebServlet("/TestEmailServlet")
 public class TestEmailServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -23,40 +24,36 @@ public class TestEmailServlet extends HttpServlet {
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
 
-        String apiKey   = System.getenv("RESEND_API_KEY");
-        String toEmail  = System.getenv("RESEND_TO_EMAIL");
+        String apiKey  = System.getenv("RESEND_API_KEY");
+        String toEmail = System.getenv("RESEND_TO_EMAIL");
 
         out.println("=== Email Config Test ===");
-        out.println("RESEND_API_KEY set: " + (apiKey != null && !apiKey.isEmpty() ? "YES (length=" + apiKey.length() + ")" : "NO - NOT SET"));
-        out.println("RESEND_TO_EMAIL: " + (toEmail != null ? toEmail : "NOT SET - will use recipient email"));
+        out.println("RESEND_API_KEY: " + (apiKey != null && !apiKey.isEmpty() ? "SET (length=" + apiKey.trim().length() + ")" : "NOT SET"));
+        out.println("RESEND_TO_EMAIL: " + (toEmail != null ? toEmail : "NOT SET"));
         out.println("");
-        out.println("Sending test email now...");
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            out.println("ERROR: RESEND_API_KEY is not set in Render environment!");
+            return;
+        }
+
+        String cleanKey = apiKey.trim();
+        String recipient = (toEmail != null && !toEmail.isEmpty()) ? toEmail.trim() : "suhasgowda636227@gmail.com";
+
+        out.println("Sending to: " + recipient);
         out.flush();
 
-        // Capture all System.out during email send
         try {
-            String apiKey2   = System.getenv("RESEND_API_KEY");
-            String toEmail2  = System.getenv("RESEND_TO_EMAIL");
-            if (toEmail2 == null || toEmail2.isEmpty()) {
-                toEmail2 = "suhasgowda636227@gmail.com";
-            }
+            String jsonBody = "{\"from\":\"CampusCare <onboarding@resend.dev>\","
+                            + "\"to\":[\"" + recipient + "\"],"
+                            + "\"subject\":\"CampusCare Test Email\","
+                            + "\"html\":\"<h2>Test</h2><p>Email is working!</p>\"}";
 
-            String jsonBody = "{"
-                + "\"from\":\"CampusCare System <onboarding@resend.dev>\","
-                + "\"to\":[\"" + toEmail2 + "\"],"
-                + "\"subject\":\"CampusCare Test\","
-                + "\"html\":\"<h2>Test</h2><p>Email working!</p>\""
-                + "}";
-
-            out.println("Sending to: " + toEmail2);
-            out.println("API Key prefix: " + (apiKey2 != null ? apiKey2.trim().substring(0, 10) + "..." : "NULL"));
+            out.println("JSON: " + jsonBody);
             out.flush();
 
-            // Trim key to remove any hidden characters
-            String cleanKey = apiKey2.trim();
-
-            java.net.URL url = new java.net.URL("https://api.resend.com/emails");
-            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            URL url = new URL("https://api.resend.com/emails");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Authorization", "Bearer " + cleanKey);
             conn.setRequestProperty("Content-Type", "application/json");
@@ -64,31 +61,36 @@ public class TestEmailServlet extends HttpServlet {
             conn.setReadTimeout(10000);
             conn.setDoOutput(true);
 
-            try (java.io.OutputStream os = conn.getOutputStream()) {
-                os.write(jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            byte[] data = jsonBody.getBytes(StandardCharsets.UTF_8);
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(data);
             }
 
             int code = conn.getResponseCode();
-            out.println("HTTP Response Code: " + code);
+            out.println("HTTP Code: " + code);
 
-            java.io.BufferedReader reader;
-            if (code >= 200 && code < 300) {
-                reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
-            } else {
-                reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getErrorStream()));
+            BufferedReader reader;
+            try {
+                reader = new BufferedReader(new InputStreamReader(
+                    code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(),
+                    StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                out.println("Could not read response stream: " + e.getMessage());
+                return;
             }
-            StringBuilder sb = new StringBuilder();
-            String line2;
-            while ((line2 = reader.readLine()) != null) sb.append(line2);
-            reader.close();
 
-            out.println("Response Body: " + sb.toString());
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line);
+            reader.close();
+            out.println("Response: " + sb.toString());
             conn.disconnect();
 
             if (code == 200 || code == 201) {
-                out.println("SUCCESS - Check your Gmail inbox and spam folder!");
+                out.println("");
+                out.println("SUCCESS! Check your Gmail inbox (and spam folder).");
             } else {
-                out.println("FAILED - See response body above for reason");
+                out.println("FAILED - see response above.");
             }
 
         } catch (Exception e) {
