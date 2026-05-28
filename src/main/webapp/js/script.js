@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // URL Parameter parsing for alerts
     // ----------------------------------------------------
-    const urlParams = new URLSearchParams(window.location.search);
-    const errorMsg  = urlParams.get('error');
+    const urlParams  = new URLSearchParams(window.location.search);
+    const errorMsg   = urlParams.get('error');
     const successMsg = urlParams.get('msg');
 
     if (errorMsg)    showError(errorMsg);
@@ -21,24 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mainNav) return;
         mainNav.classList.add('open');
         if (navOverlay) navOverlay.classList.add('open');
-        if (hamburger)  hamburger.classList.add('open');
+        if (hamburger)  hamburger.setAttribute('aria-expanded', 'true');
+        hamburger && hamburger.classList.add('open');
     }
 
     function closeNav() {
         if (!mainNav) return;
         mainNav.classList.remove('open');
         if (navOverlay) navOverlay.classList.remove('open');
-        if (hamburger)  hamburger.classList.remove('open');
+        if (hamburger)  hamburger.setAttribute('aria-expanded', 'false');
+        hamburger && hamburger.classList.remove('open');
     }
 
     if (hamburger) {
-        hamburger.addEventListener('click', function(e) {
+        hamburger.addEventListener('click', function (e) {
             e.stopPropagation();
-            if (mainNav && mainNav.classList.contains('open')) {
-                closeNav();
-            } else {
-                openNav();
-            }
+            mainNav && mainNav.classList.contains('open') ? closeNav() : openNav();
         });
     }
 
@@ -46,7 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
         navOverlay.addEventListener('click', closeNav);
     }
 
-    // NOTE: Do NOT attach closeNav to nav links — it blocks navigation on mobile
+    // ✅ FIX: Let nav links navigate AND close the menu
+    // pointer-events on the overlay was blocking clicks — this ensures
+    // the link fires first, then the menu closes.
+    if (mainNav) {
+        mainNav.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                // Close the menu visually but DO NOT prevent default —
+                // the browser will follow the href normally.
+                closeNav();
+            });
+        });
+    }
 
     // ----------------------------------------------------
     // Modal Logic
@@ -94,7 +103,7 @@ function showSuccess(msg) {
 
 // Helper to determine badge class based on status
 function getBadgeClass(status) {
-    if (status === 'Resolved') return 'badge-resolved';
+    if (status === 'Resolved')    return 'badge-resolved';
     if (status === 'In Progress') return 'badge-progress';
     return 'badge-pending';
 }

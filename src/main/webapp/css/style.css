@@ -110,7 +110,7 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    z-index: 9998;
+    z-index: 9990; /* ✅ FIX: lowered so nav links sit above it */
     -webkit-tap-highlight-color: transparent;
     pointer-events: none;
 }
@@ -139,11 +139,6 @@ nav .nav-link {
 nav .nav-link:hover,
 nav .nav-link.active {
     color: #818cf8 !important;
-    pointer-events: auto !important;
-}
-nav.open .nav-link {
-    pointer-events: auto !important;
-    cursor: pointer !important;
 }
 
 /* =============================================
@@ -695,17 +690,11 @@ nav.open .nav-link {
         gap: 2.5rem;
     }
 
-    .hero-content {
-        max-width: 100%;
-    }
+    .hero-content { max-width: 100%; }
 
-    .hero-buttons {
-        justify-content: center;
-    }
+    .hero-buttons { justify-content: center; }
 
-    .hero-title {
-        font-size: 2.6rem;
-    }
+    .hero-title { font-size: 2.6rem; }
 
     .hero-graphic {
         justify-content: center;
@@ -714,12 +703,10 @@ nav.open .nav-link {
 
     .floating-card {
         max-width: 400px;
-        animation: none; /* reduce motion on smaller screens */
+        animation: none;
     }
 
-    .dashboard-container {
-        padding: 2rem 4%;
-    }
+    .dashboard-container { padding: 2rem 4%; }
 }
 
 /* =============================================
@@ -727,20 +714,15 @@ nav.open .nav-link {
    ============================================= */
 @media (max-width: 640px) {
 
-    /* Header */
     .glass-header {
         padding: 0.9rem 4%;
         flex-wrap: nowrap;
     }
 
-    .logo {
-        font-size: 1.35rem;
-    }
+    .logo { font-size: 1.35rem; }
 
     /* Show hamburger */
-    .hamburger {
-        display: flex;
-    }
+    .hamburger { display: flex; }
 
     /* Nav drawer — slides in from right */
     nav {
@@ -754,7 +736,7 @@ nav.open .nav-link {
         background: #0d1526 !important;
         border-left: 1px solid rgba(255,255,255,0.15) !important;
         padding: 80px 1.5rem 2rem !important;
-        z-index: 9999 !important;
+        z-index: 9999 !important; /* ✅ stays above overlay which is now 9990 */
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 0 !important;
@@ -779,6 +761,9 @@ nav.open .nav-link {
         display: block !important;
         color: #f8fafc !important;
         text-decoration: none !important;
+        pointer-events: auto !important;        /* ✅ ensure links are always clickable */
+        position: relative !important;          /* ✅ ensure links stack above overlay */
+        z-index: 10000 !important;              /* ✅ links sit above everything */
         -webkit-tap-highlight-color: transparent !important;
     }
 
@@ -796,13 +781,8 @@ nav.open .nav-link {
         gap: 2rem;
     }
 
-    .hero-title {
-        font-size: 2rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-    }
+    .hero-title { font-size: 2rem; }
+    .hero-subtitle { font-size: 1rem; }
 
     .hero-buttons {
         flex-direction: column;
@@ -814,9 +794,7 @@ nav.open .nav-link {
         max-width: 300px;
     }
 
-    .btn-secondary {
-        margin-left: 0;
-    }
+    .btn-secondary { margin-left: 0; }
 
     .floating-card {
         max-width: 100%;
@@ -830,18 +808,11 @@ nav.open .nav-link {
         padding-top: 2rem;
     }
 
-    .auth-card {
-        padding: 1.75rem 1.25rem;
-    }
-
-    .auth-title {
-        font-size: 1.5rem;
-    }
+    .auth-card { padding: 1.75rem 1.25rem; }
+    .auth-title { font-size: 1.5rem; }
 
     /* Dashboard */
-    .dashboard-container {
-        padding: 1.5rem 4%;
-    }
+    .dashboard-container { padding: 1.5rem 4%; }
 
     .dashboard-header {
         flex-direction: column;
@@ -849,9 +820,7 @@ nav.open .nav-link {
         gap: 0.75rem;
     }
 
-    .dashboard-title {
-        font-size: 1.4rem;
-    }
+    .dashboard-title { font-size: 1.4rem; }
 
     .dashboard-header .btn {
         width: 100%;
@@ -869,9 +838,7 @@ nav.open .nav-link {
         gap: 0.6rem;
     }
 
-    .complaint-title {
-        font-size: 1.05rem;
-    }
+    .complaint-title { font-size: 1.05rem; }
 
     .complaint-meta {
         flex-direction: column;
@@ -890,9 +857,7 @@ nav.open .nav-link {
     }
 
     /* Filter bars */
-    .priority-filter-bar {
-        gap: 0.4rem;
-    }
+    .priority-filter-bar { gap: 0.4rem; }
 
     .priority-filter-bar span {
         width: 100%;
@@ -923,24 +888,15 @@ nav.open .nav-link {
         to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Section headings */
-    .section-heading {
-        font-size: 0.8rem;
-    }
+    .section-heading { font-size: 0.8rem; }
 }
 
 /* =============================================
    RESPONSIVE — SMALL MOBILE  (max 400px)
    ============================================= */
 @media (max-width: 400px) {
-    .hero-title {
-        font-size: 1.7rem;
-    }
-
-    .logo {
-        font-size: 1.2rem;
-    }
-
+    .hero-title { font-size: 1.7rem; }
+    .logo { font-size: 1.2rem; }
     .badge {
         font-size: 0.7rem;
         padding: 0.25rem 0.55rem;
