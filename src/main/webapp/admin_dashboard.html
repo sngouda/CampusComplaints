@@ -202,15 +202,15 @@
             toast.textContent = msg;
             toast.className = 'toast ' + type;
             toast.style.display = 'block';
-            setTimeout(function(){ toast.style.display = 'none'; }, 3500);
+            setTimeout(function(){ toast.style.display = 'none'; }, 4000);
         }
 
         function updateStatus(id) {
-            const btn = event.target;
+            // Get button reliably via ID instead of event.target
+            const btn = document.querySelector('[onclick="updateStatus(' + id + ')"]');
             const newStatus = document.getElementById('status-' + id).value;
 
-            btn.disabled = true;
-            btn.textContent = 'Updating...';
+            if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
 
             const formData = new URLSearchParams();
             formData.append('id', id);
@@ -222,33 +222,38 @@
                 body: formData.toString()
             })
             .then(function(r) {
-                return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+                // Read as text first — safer than .json() which throws on non-JSON
+                return r.text().then(function(text) {
+                    var data = {};
+                    try { data = JSON.parse(text); } catch(e) { data = { success: r.ok, message: text }; }
+                    return { ok: r.ok, data: data };
+                });
             })
             .then(function(result) {
-                btn.disabled = false;
-                btn.textContent = 'Update Status';
+                if (btn) { btn.disabled = false; btn.textContent = 'Update Status'; }
 
                 if (result.ok && result.data.success) {
-                    const card = btn.closest('.complaint-item');
+                    // Update badge on card directly
+                    const card = btn ? btn.closest('.complaint-item') : null;
                     if (card) {
                         const badge = card.querySelector('.badge-pending, .badge-progress, .badge-resolved');
                         if (badge) {
                             badge.className = 'badge ' + getBadgeClass(newStatus);
                             badge.textContent = newStatus;
                         }
-                        const c = allComplaints.find(function(x){ return x.id === id; });
-                        if (c) c.status = newStatus;
                     }
-                    showToast('✅ Status updated to "' + newStatus + '"', 'success');
+                    const c = allComplaints.find(function(x){ return x.id === id; });
+                    if (c) c.status = newStatus;
+
+                    showToast('✅ Status updated to "' + newStatus + '" successfully!', 'success');
                 } else {
-                    showToast('❌ ' + (result.data.message || 'Failed to update status.'), 'error');
+                    showToast('❌ ' + (result.data.message || 'Failed to update. Try again.'), 'error');
                 }
             })
             .catch(function(err) {
-                btn.disabled = false;
-                btn.textContent = 'Update Status';
-                console.error(err);
-                showToast('❌ Network error. Check your connection.', 'error');
+                if (btn) { btn.disabled = false; btn.textContent = 'Update Status'; }
+                console.error('updateStatus error:', err);
+                showToast('❌ Network error. Please try again.', 'error');
             });
         }
 
