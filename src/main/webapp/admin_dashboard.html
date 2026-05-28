@@ -122,13 +122,16 @@
     <div class="background-anim"></div>
     <div class="nav-overlay" id="nav-overlay"></div>
     <header class="glass-header">
-        <a href="index.html" style="text-decoration:none;"><div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div></a>
+        <a href="index.html" style="text-decoration:none;">
+            <div class="logo">CampusCare <span style="font-size:1rem; color:var(--warning); vertical-align:middle;">ADMIN</span></div>
+        </a>
         <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
         <nav id="main-nav">
             <span class="nav-link" style="color:var(--text-muted);">Welcome, Admin</span>
-            <a href="admin_login.html" class="nav-link active" style="color:var(--warning);">Logout</a>
+            <!-- ✅ FIXED: Points to AdminLogoutServlet instead of admin_login.html -->
+            <a href="AdminLogoutServlet" class="nav-link active" style="color:var(--warning);">Logout</a>
         </nav>
     </header>
 
@@ -153,11 +156,11 @@
             <!-- Category Filter Buttons -->
             <div class="priority-filter-bar">
                 <span>Filter by Category:</span>
-                <button class="filter-btn cat-all active" id="filter-cat-all"            onclick="applyCategoryFilter('All')">📋 All</button>
-                <button class="filter-btn infrastructure" id="filter-infrastructure"     onclick="applyCategoryFilter('Infrastructure')">🏗️ Infrastructure</button>
-                <button class="filter-btn campus"         id="filter-campus"             onclick="applyCategoryFilter('Campus')">🏫 Campus</button>
-                <button class="filter-btn hostel"         id="filter-hostel"             onclick="applyCategoryFilter('Hostel')">🏠 Hostel</button>
-                <button class="filter-btn others"         id="filter-others"             onclick="applyCategoryFilter('Others')">📁 Others</button>
+                <button class="filter-btn cat-all active" id="filter-cat-all"        onclick="applyCategoryFilter('All')">📋 All</button>
+                <button class="filter-btn infrastructure" id="filter-infrastructure" onclick="applyCategoryFilter('Infrastructure')">🏗️ Infrastructure</button>
+                <button class="filter-btn campus"         id="filter-campus"         onclick="applyCategoryFilter('Campus')">🏫 Campus</button>
+                <button class="filter-btn hostel"         id="filter-hostel"         onclick="applyCategoryFilter('Hostel')">🏠 Hostel</button>
+                <button class="filter-btn others"         id="filter-others"         onclick="applyCategoryFilter('Others')">📁 Others</button>
             </div>
 
             <div id="results-info"></div>
@@ -199,7 +202,8 @@
 
         function applyPriorityFilter(priority) {
             currentPriorityFilter = priority;
-            document.querySelectorAll('.filter-btn.all, .filter-btn.high, .filter-btn.medium, .filter-btn.low').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.filter-btn.all, .filter-btn.high, .filter-btn.medium, .filter-btn.low')
+                    .forEach(btn => btn.classList.remove('active'));
             const btnMap = { All: 'filter-all', High: 'filter-high', Medium: 'filter-medium', Low: 'filter-low' };
             document.getElementById(btnMap[priority]).classList.add('active');
             renderComplaints();
@@ -207,8 +211,15 @@
 
         function applyCategoryFilter(category) {
             currentCategoryFilter = category;
-            document.querySelectorAll('.filter-btn.cat-all, .filter-btn.infrastructure, .filter-btn.campus, .filter-btn.hostel, .filter-btn.others').forEach(btn => btn.classList.remove('active'));
-            const btnMap = { All: 'filter-cat-all', Infrastructure: 'filter-infrastructure', Campus: 'filter-campus', Hostel: 'filter-hostel', Others: 'filter-others' };
+            document.querySelectorAll('.filter-btn.cat-all, .filter-btn.infrastructure, .filter-btn.campus, .filter-btn.hostel, .filter-btn.others')
+                    .forEach(btn => btn.classList.remove('active'));
+            const btnMap = {
+                All: 'filter-cat-all',
+                Infrastructure: 'filter-infrastructure',
+                Campus: 'filter-campus',
+                Hostel: 'filter-hostel',
+                Others: 'filter-others'
+            };
             document.getElementById(btnMap[category]).classList.add('active');
             renderComplaints();
         }
@@ -220,12 +231,10 @@
 
             let list = allComplaints;
 
-            // Apply priority filter
             if (currentPriorityFilter !== 'All') {
                 list = list.filter(c => (c.priority || 'Medium') === currentPriorityFilter);
             }
 
-            // Apply category filter
             if (currentCategoryFilter !== 'All') {
                 list = list.filter(c => (c.category || 'Others') === currentCategoryFilter);
             }
@@ -245,7 +254,6 @@
             info.textContent = infoText;
 
             if (currentPriorityFilter === 'All' && currentCategoryFilter === 'All') {
-                // Group by priority when no filter active
                 ['High', 'Medium', 'Low'].forEach(p => {
                     const group = list.filter(c => (c.priority || 'Medium') === p);
                     if (group.length === 0) return;
