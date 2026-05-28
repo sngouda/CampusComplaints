@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // URL Parameter parsing for alerts
     // ----------------------------------------------------
     const urlParams = new URLSearchParams(window.location.search);
-    const errorMsg = urlParams.get('error');
+    const errorMsg  = urlParams.get('error');
     const successMsg = urlParams.get('msg');
 
-    if (errorMsg)   showError(errorMsg);
-    if (successMsg) showSuccess(successMsg);
+    if (errorMsg)    showError(errorMsg);
+    if (successMsg)  showSuccess(successMsg);
 
     // ----------------------------------------------------
     // Hamburger / Mobile Nav
@@ -18,24 +18,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const navOverlay = document.getElementById('nav-overlay');
 
     function openNav() {
-        mainNav    && mainNav.classList.add('open');
-        navOverlay && navOverlay.classList.add('open');
-        hamburger  && hamburger.classList.add('open');
-        hamburger  && hamburger.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
+        if (!mainNav) return;
+        mainNav.classList.add('open');
+        if (navOverlay) navOverlay.classList.add('open');
+        if (hamburger)  hamburger.classList.add('open');
     }
 
     function closeNav() {
-        mainNav    && mainNav.classList.remove('open');
-        navOverlay && navOverlay.classList.remove('open');
-        hamburger  && hamburger.classList.remove('open');
-        hamburger  && hamburger.setAttribute('aria-expanded', 'false');
-        document.body.style.overflow = '';
+        if (!mainNav) return;
+        mainNav.classList.remove('open');
+        if (navOverlay) navOverlay.classList.remove('open');
+        if (hamburger)  hamburger.classList.remove('open');
     }
 
     if (hamburger) {
-        hamburger.addEventListener('click', () => {
-            mainNav && mainNav.classList.contains('open') ? closeNav() : openNav();
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (mainNav && mainNav.classList.contains('open')) {
+                closeNav();
+            } else {
+                openNav();
+            }
         });
     }
 
@@ -43,9 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
         navOverlay.addEventListener('click', closeNav);
     }
 
-    // Close nav when a link is tapped on mobile
+    // Close when a nav link is tapped
     if (mainNav) {
-        mainNav.querySelectorAll('.nav-link').forEach(link => {
+        mainNav.querySelectorAll('a.nav-link').forEach(function(link) {
             link.addEventListener('click', closeNav);
         });
     }
@@ -53,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // Modal Logic
     // ----------------------------------------------------
-    const addBtn  = document.getElementById('add-complaint-btn');
-    const modal   = document.getElementById('complaint-modal');
+    const addBtn   = document.getElementById('add-complaint-btn');
+    const modal    = document.getElementById('complaint-modal');
     const closeBtn = document.querySelector('.close-btn');
 
     if (addBtn && modal && closeBtn) {
