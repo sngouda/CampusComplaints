@@ -179,19 +179,67 @@
         }
 
         function updateStatus(id) {
-            const newStatus = document.getElementById(`status-${id}`).value;
+            const btn = event.target;
+            const newStatus = document.getElementById('status-' + id).value;
+
+            // Disable button while updating
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
             const formData = new URLSearchParams();
             formData.append('id', id);
             formData.append('status', newStatus);
-            fetch('UpdateComplaintServlet', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:formData.toString() })
-                .then(r => {
-                    const div = document.getElementById(r.ok ? 'success-alert' : 'error-alert');
-                    div.textContent = r.ok ? 'Status updated successfully!' : 'Failed to update status.';
-                    div.style.display = 'block';
-                    setTimeout(()=>div.style.display='none', 3000);
-                    if (r.ok) loadComplaints();
-                })
-                .catch(err=>console.error(err));
+
+            fetch('UpdateComplaintServlet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(function(r) {
+                return r.text().then(function(text) {
+                    return { ok: r.ok, text: text };
+                });
+            })
+            .then(function(result) {
+                btn.disabled = false;
+                btn.textContent = 'Update Status';
+
+                if (result.ok) {
+                    // Update the badge on the card directly without reloading
+                    const card = btn.closest('.complaint-item');
+                    if (card) {
+                        const badge = card.querySelector('.badge.badge-pending, .badge.badge-progress, .badge.badge-resolved');
+                        if (badge) {
+                            badge.className = 'badge ' + getBadgeClass(newStatus);
+                            badge.textContent = newStatus;
+                        }
+                        // Update in allComplaints array too
+                        const c = allComplaints.find(function(x){ return x.id === id; });
+                        if (c) c.status = newStatus;
+                    }
+
+                    // Show success toast
+                    const successDiv = document.getElementById('success-alert');
+                    successDiv.textContent = '✅ Status updated to "' + newStatus + '" successfully!';
+                    successDiv.style.display = 'block';
+                    successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    setTimeout(function(){ successDiv.style.display = 'none'; }, 4000);
+                } else {
+                    const errorDiv = document.getElementById('error-alert');
+                    errorDiv.textContent = '❌ Failed to update status. Please try again.';
+                    errorDiv.style.display = 'block';
+                    setTimeout(function(){ errorDiv.style.display = 'none'; }, 4000);
+                }
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                btn.textContent = 'Update Status';
+                console.error(err);
+                const errorDiv = document.getElementById('error-alert');
+                errorDiv.textContent = '❌ Network error. Please check your connection.';
+                errorDiv.style.display = 'block';
+                setTimeout(function(){ errorDiv.style.display = 'none'; }, 4000);
+            });
         }
 
         function getPriorityBadgeClass(p) { return p==='High'?'badge-priority-high':p==='Low'?'badge-priority-low':'badge-priority-medium'; }
