@@ -7,62 +7,69 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Sends email via Brevo (Sendinblue) HTTP API.
+ * Free tier: 300 emails/day, sends to ANY email, no domain needed.
+ *
+ * Required environment variables on Render:
+ *   BREVO_API_KEY  — API key from app.brevo.com
+ *   SENDER_EMAIL   — your verified sender email
+ */
 public class EmailUtil {
 
-    private static final String API_URL = "https://api.resend.com/emails";
+    private static final String API_URL     = "https://api.brevo.com/v3/smtp/email";
+    private static final String SENDER_NAME = "CampusCare System";
 
     public static void sendEmail(String recipientEmail, String subject, String body) {
 
-        String apiKey = System.getenv("RESEND_API_KEY");
-        if (apiKey == null || apiKey.isEmpty()) {
-            System.out.println("[EMAIL] RESEND_API_KEY not set — skipping");
+        String apiKey      = System.getenv("BREVO_API_KEY");
+        String senderEmail = System.getenv("SENDER_EMAIL");
+
+        if (senderEmail == null || senderEmail.trim().isEmpty()) {
+            senderEmail = "suhasgowda636227@gmail.com";
+        }
+
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            System.out.println("[EMAIL] BREVO_API_KEY not set — skipping email to " + recipientEmail);
             return;
         }
-        apiKey = apiKey.trim();
 
-        // Use RESEND_TO_EMAIL override if set (Resend free plan restriction)
-        String toEmail = System.getenv("RESEND_TO_EMAIL");
-        if (toEmail == null || toEmail.trim().isEmpty()) {
-            toEmail = recipientEmail;
-        }
-        toEmail = toEmail.trim();
+        apiKey      = apiKey.trim();
+        senderEmail = senderEmail.trim();
 
-        System.out.println("[EMAIL] Sending to: " + toEmail + " | Subject: " + subject);
+        System.out.println("[EMAIL] Sending to: " + recipientEmail + " | Subject: " + subject);
 
         try {
-            // Build JSON manually with safe escaping
-            // Use simple plain text to avoid HTML escaping issues
-            String safeSubject = subject.replace("\\", "").replace("\"", "'");
-            String safeHtml    = body.replace("\\", "").replace("\"", "'");
-            String safeFrom    = "CampusCare <onboarding@resend.dev>";
-            String safeTo      = toEmail.replace("\"", "");
+            String safeSubject   = subject.replace("\\", "").replace("\"", "'");
+            String safeBody      = body.replace("\\", "").replace("\"", "'");
+            String safeSender    = senderEmail.replace("\"", "");
+            String safeRecipient = recipientEmail.replace("\"", "");
 
-            String jsonBody = "{\"from\":\"" + safeFrom + "\","
-                            + "\"to\":[\"" + safeTo + "\"],"
-                            + "\"subject\":\"" + safeSubject + "\","
-                            + "\"html\":\"" + safeHtml + "\"}";
-
-            byte[] postData = jsonBody.getBytes(StandardCharsets.UTF_8);
+            String jsonBody = "{"
+                + "\"sender\":{\"name\":\"" + SENDER_NAME + "\",\"email\":\"" + safeSender + "\"},"
+                + "\"to\":[{\"email\":\"" + safeRecipient + "\"}],"
+                + "\"subject\":\"" + safeSubject + "\","
+                + "\"htmlContent\":\"" + safeBody + "\""
+                + "}";
 
             URL url = new URL(API_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+            conn.setRequestProperty("api-key", apiKey);
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Content-Length", String.valueOf(postData.length));
+            conn.setRequestProperty("Accept", "application/json");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
             conn.setDoOutput(true);
 
             try (OutputStream os = conn.getOutputStream()) {
-                os.write(postData);
+                os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
                 os.flush();
             }
 
             int code = conn.getResponseCode();
             System.out.println("[EMAIL] HTTP response: " + code);
 
-            // Read response
             BufferedReader reader;
             try {
                 reader = new BufferedReader(new InputStreamReader(
@@ -80,8 +87,8 @@ public class EmailUtil {
             reader.close();
             System.out.println("[EMAIL] Response: " + resp);
 
-            if (code == 200 || code == 201) {
-                System.out.println("[EMAIL] SUCCESS - sent to: " + toEmail);
+            if (code == 201) {
+                System.out.println("[EMAIL] SUCCESS - sent to: " + recipientEmail);
             } else {
                 System.out.println("[EMAIL] FAILED - HTTP " + code);
             }
