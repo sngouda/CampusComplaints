@@ -49,13 +49,16 @@ public class TestEmailServlet extends HttpServlet {
                 + "}";
 
             out.println("Sending to: " + toEmail2);
-            out.println("API Key prefix: " + (apiKey2 != null ? apiKey2.substring(0, 10) + "..." : "NULL"));
+            out.println("API Key prefix: " + (apiKey2 != null ? apiKey2.trim().substring(0, 10) + "..." : "NULL"));
             out.flush();
+
+            // Trim key to remove any hidden characters
+            String cleanKey = apiKey2.trim();
 
             java.net.URL url = new java.net.URL("https://api.resend.com/emails");
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey2);
+            conn.setRequestProperty("Authorization", "Bearer " + cleanKey);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);

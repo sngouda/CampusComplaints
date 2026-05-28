@@ -21,6 +21,9 @@ public class EmailUtil {
             return;
         }
 
+        // Strip any accidental whitespace/newlines from the key
+        apiKey = apiKey.trim();
+
         // Resend free plan: only sends to your own verified email
         // Set RESEND_TO_EMAIL in Render env to override recipient
         String toEmail = System.getenv("RESEND_TO_EMAIL");
