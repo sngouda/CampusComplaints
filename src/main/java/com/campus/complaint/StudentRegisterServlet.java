@@ -60,8 +60,6 @@ public class StudentRegisterServlet extends HttpServlet {
             } else {
                 response.sendRedirect("student_register.html?error=Registration Failed. Please try again.");
             }
-        } catch (com.mysql.cj.jdbc.exceptions.MysqlDataTruncation e) {
-            response.sendRedirect("student_register.html?error=Input too long. Please shorten your details.");
         } catch (java.sql.SQLIntegrityConstraintViolationException e) {
             response.sendRedirect("student_register.html?error=Email already registered. Please login.");
         } catch (Exception e) {
