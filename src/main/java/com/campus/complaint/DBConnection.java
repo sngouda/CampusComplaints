@@ -20,9 +20,7 @@ public class DBConnection {
         props.setProperty("requireSSL", "true");
         props.setProperty("verifyServerCertificate", "false");
         props.setProperty("allowPublicKeyRetrieval", "true");
-        props.setProperty("serverTimezone", "Asia/Kolkata");
-        props.setProperty("connectionTimeZone", "Asia/Kolkata");
-        props.setProperty("forceConnectionTimeZoneToSession", "true");
+        props.setProperty("serverTimezone", "UTC");
 
         return DriverManager.getConnection(url, props);
     }
