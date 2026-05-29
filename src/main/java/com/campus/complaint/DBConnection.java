@@ -21,6 +21,8 @@ public class DBConnection {
         props.setProperty("verifyServerCertificate", "false");
         props.setProperty("allowPublicKeyRetrieval", "true");
         props.setProperty("serverTimezone", "Asia/Kolkata");
+        props.setProperty("connectionTimeZone", "Asia/Kolkata");
+        props.setProperty("forceConnectionTimeZoneToSession", "true");
 
         return DriverManager.getConnection(url, props);
     }
