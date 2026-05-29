@@ -3,6 +3,8 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
+# Verify MySQL JAR is in the WAR
+RUN jar tf target/CampusComplaintSystem.war | grep mysql
 
 # Stage 2: Deploy on Tomcat 9
 FROM tomcat:9.0-jdk17-temurin
