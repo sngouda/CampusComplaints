@@ -25,12 +25,14 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- MySQL Connector - matches the JAR in WEB-INF/lib -->
+    <!-- MySQL Connector JAR is in WEB-INF/lib - no Maven dependency needed -->
+    <!-- mysql-connector-j-9.5.0.jar is bundled directly in WEB-INF/lib -->
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
       <version>9.5.0</version>
-      <scope>compile</scope>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/mysql-connector-j-9.5.0.jar</systemPath>
     </dependency>
 
   </dependencies>
